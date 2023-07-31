@@ -256,6 +256,20 @@ public:
 		FLAG_SUBSURFACE_MODE_SKIN,
 		FLAG_PARTICLE_TRAILS_MODE,
 		FLAG_ALBEDO_TEXTURE_MSDF,
+		FLAG_SYNTHESIZE_ALBEDO,
+		FLAG_SYNTHESIZE_HEIGHT,
+		FLAG_SYNTHESIZE_METALLIC,
+		FLAG_SYNTHESIZE_ROUGHNESS,
+		FLAG_SYNTHESIZE_EMISSION,
+		FLAG_SYNTHESIZE_NORMAL_MAP,
+		FLAG_SYNTHESIZE_RIM,
+		FLAG_SYNTHESIZE_CLEARCOAT,
+		FLAG_SYNTHESIZE_ANISOTROPY,
+		FLAG_SYNTHESIZE_AO,
+		FLAG_SYNTHESIZE_SUBSURFACE_SCATTERING,
+		FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE,
+		FLAG_SYNTHESIZE_BACK_LIGHTING,
+		FLAG_SYNTHESIZE_DETAIL,
 		FLAG_MAX
 	};
 
@@ -305,6 +319,12 @@ public:
 		DISTANCE_FADE_MAX
 	};
 
+	enum TextureSynthesisMode {
+		TEXTURE_SYNTHESIS_DISABLED,
+		TEXTURE_SYNTHESIS_STATIONARY,
+		TEXTURE_SYNTHESIS_MAX
+	};
+
 private:
 	struct MaterialKey {
 		// enum values
@@ -323,6 +343,8 @@ private:
 		uint64_t roughness_channel : get_num_bits(TEXTURE_CHANNEL_MAX - 1);
 		uint64_t emission_op : get_num_bits(EMISSION_OP_MAX - 1);
 		uint64_t distance_fade : get_num_bits(DISTANCE_FADE_MAX - 1);
+		uint64_t texture_synthesis : get_num_bits(TEXTURE_SYNTHESIS_MAX - 1);
+
 		// booleans
 		uint64_t deep_parallax : 1;
 		uint64_t grow : 1;
@@ -380,6 +402,7 @@ private:
 		mk.emission_op = emission_op;
 		mk.alpha_antialiasing_mode = alpha_antialiasing_mode;
 		mk.orm = orm;
+		mk.texture_synthesis = texture_synthesis;
 
 		for (int i = 0; i < FEATURE_MAX; i++) {
 			if (features[i]) {
@@ -542,6 +565,8 @@ private:
 	TextureChannel roughness_texture_channel;
 	TextureChannel ao_texture_channel;
 	TextureChannel refraction_texture_channel;
+
+	TextureSynthesisMode texture_synthesis = TEXTURE_SYNTHESIS_DISABLED;
 
 	AlphaAntiAliasing alpha_antialiasing_mode = ALPHA_ANTIALIASING_OFF;
 
@@ -764,6 +789,9 @@ public:
 	void set_refraction_texture_channel(TextureChannel p_channel);
 	TextureChannel get_refraction_texture_channel() const;
 
+	void set_texture_synthesis(TextureSynthesisMode p_mode);
+	TextureSynthesisMode get_texture_synthesis() const;
+
 	static void init_shaders();
 	static void finish_shaders();
 	static void flush_changes();
@@ -795,6 +823,7 @@ VARIANT_ENUM_CAST(BaseMaterial3D::BillboardMode)
 VARIANT_ENUM_CAST(BaseMaterial3D::TextureChannel)
 VARIANT_ENUM_CAST(BaseMaterial3D::EmissionOperator)
 VARIANT_ENUM_CAST(BaseMaterial3D::DistanceFadeMode)
+VARIANT_ENUM_CAST(BaseMaterial3D::TextureSynthesisMode)
 
 class StandardMaterial3D : public BaseMaterial3D {
 	GDCLASS(StandardMaterial3D, BaseMaterial3D)
