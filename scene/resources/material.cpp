@@ -2286,52 +2286,52 @@ void BaseMaterial3D::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if (p_property.name.begins_with("texture_synthesis_synthesize_")
+	if (p_property.name.begins_with("texture_synthesis_") && (p_property.name != "texture_synthesis_mode")
 	&& texture_synthesis == TEXTURE_SYNTHESIS_DISABLED) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_emission") && !FEATURE_EMISSION ){
+	if ((p_property.name == "texture_synthesis_emission") && !features[FEATURE_EMISSION]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_normal_map") && !FEATURE_NORMAL_MAPPING ){
+	if ((p_property.name == "texture_synthesis_normal_map") && !features[FEATURE_NORMAL_MAPPING]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_rim") && !FEATURE_RIM ){
+	if ((p_property.name == "texture_synthesis_rim") && !features[FEATURE_RIM]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_clearcoat") && !FEATURE_CLEARCOAT ){
+	if ((p_property.name == "texture_synthesis_clearcoat") && !features[FEATURE_CLEARCOAT]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_anisotropy") && !FEATURE_ANISOTROPY ){
+	if ((p_property.name == "texture_synthesis_anisotropy") && !features[FEATURE_ANISOTROPY]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_ao") && !FEATURE_AMBIENT_OCCLUSION ){
+	if ((p_property.name == "texture_synthesis_ao") && !features[FEATURE_AMBIENT_OCCLUSION]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_height") && !FEATURE_HEIGHT_MAPPING ){
+	if ((p_property.name == "texture_synthesis_height") && !features[FEATURE_HEIGHT_MAPPING]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_subsufrace_scattering" || p_property.name == "texture_synthesis_synthesize_subsufrace_transmittance") && !FEATURE_SUBSURFACE_SCATTERING ){
+	if ((p_property.name == "texture_synthesis_subsurface_scattering" || p_property.name == "texture_synthesis_subsurface_transmittance") && !features[FEATURE_SUBSURFACE_SCATTERING]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_subsufrace_transmittance") && !FEATURE_SUBSURFACE_TRANSMITTANCE ){
+	if ((p_property.name == "texture_synthesis_subsufrace_transmittance") && !features[FEATURE_SUBSURFACE_TRANSMITTANCE]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_back_lighting") && !FEATURE_BACKLIGHT ){
+	if ((p_property.name == "texture_synthesis_back_lighting") && !features[FEATURE_BACKLIGHT]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if ((p_property.name == "texture_synthesis_synthesize_detail") && !FEATURE_DETAIL ){
+	if ((p_property.name == "texture_synthesis_detail") && !features[FEATURE_DETAIL]){
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
@@ -3219,20 +3219,20 @@ void BaseMaterial3D::_bind_methods() {
 
 	ADD_GROUP("Texture Synthesis", "texture_synthesis_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "texture_synthesis_mode", PROPERTY_HINT_ENUM, "Disabled,Stationary"), "set_texture_synthesis", "get_texture_synthesis");
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_albedo"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ALBEDO);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_height"), "set_flag", "get_flag", FLAG_SYNTHESIZE_HEIGHT);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_metallic"), "set_flag", "get_flag", FLAG_SYNTHESIZE_METALLIC);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_roughness"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ROUGHNESS);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_emission"), "set_flag", "get_flag", FLAG_SYNTHESIZE_EMISSION);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_normal_map"), "set_flag", "get_flag", FLAG_SYNTHESIZE_NORMAL_MAP);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_rim"), "set_flag", "get_flag", FLAG_SYNTHESIZE_RIM);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_clearcoat"), "set_flag", "get_flag", FLAG_SYNTHESIZE_CLEARCOAT);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_anisotropy"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ANISOTROPY);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_ao"), "set_flag", "get_flag", FLAG_SYNTHESIZE_AO);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_subsurface_scattering"), "set_flag", "get_flag", FLAG_SYNTHESIZE_SUBSURFACE_SCATTERING);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_subsurface_transmittance"), "set_flag", "get_flag", FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_back_lighting"), "set_flag", "get_flag", FLAG_SYNTHESIZE_BACK_LIGHTING);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_synthesize_detail"), "set_flag", "get_flag", FLAG_SYNTHESIZE_DETAIL);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_albedo"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ALBEDO);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_height"), "set_flag", "get_flag", FLAG_SYNTHESIZE_HEIGHT);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_metallic"), "set_flag", "get_flag", FLAG_SYNTHESIZE_METALLIC);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_roughness"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ROUGHNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_emission"), "set_flag", "get_flag", FLAG_SYNTHESIZE_EMISSION);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_normal_map"), "set_flag", "get_flag", FLAG_SYNTHESIZE_NORMAL_MAP);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_rim"), "set_flag", "get_flag", FLAG_SYNTHESIZE_RIM);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_clearcoat"), "set_flag", "get_flag", FLAG_SYNTHESIZE_CLEARCOAT);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_anisotropy"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ANISOTROPY);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_ao"), "set_flag", "get_flag", FLAG_SYNTHESIZE_AO);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_subsurface_scattering"), "set_flag", "get_flag", FLAG_SYNTHESIZE_SUBSURFACE_SCATTERING);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_subsurface_transmittance"), "set_flag", "get_flag", FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_back_lighting"), "set_flag", "get_flag", FLAG_SYNTHESIZE_BACK_LIGHTING);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_detail"), "set_flag", "get_flag", FLAG_SYNTHESIZE_DETAIL);
 
 	BIND_ENUM_CONSTANT(TEXTURE_ALBEDO);
 	BIND_ENUM_CONSTANT(TEXTURE_METALLIC);
@@ -3454,7 +3454,6 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	flags[FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE] = true;
 	flags[FLAG_SYNTHESIZE_BACK_LIGHTING] = true;
 	flags[FLAG_SYNTHESIZE_DETAIL] = true;
-	// TODO BOOL
 
 
 	_mark_initialized(callable_mp(this, &BaseMaterial3D::_queue_shader_change));
