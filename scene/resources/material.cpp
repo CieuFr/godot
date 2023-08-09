@@ -587,6 +587,9 @@ void BaseMaterial3D::init_shaders() {
 
 	shader_names->alpha_antialiasing_edge = "alpha_antialiasing_edge";
 	shader_names->albedo_texture_size = "albedo_texture_size";
+	
+	shader_names->texture_synthesis_tiling_scale = "texture_synthesis_tiling_scale";
+	shader_names->texture_synthesis_weight_exponent = "texture_synthesis_weight_exponent";
 }
 
 HashMap<uint64_t, Ref<StandardMaterial3D>> BaseMaterial3D::materials_for_2d;
@@ -957,6 +960,12 @@ void BaseMaterial3D::_update_shader() {
 		code += "uniform float uv2_blend_sharpness;\n";
 		code += "varying vec3 uv2_power_normal;\n";
 	}
+	
+	if(texture_synthesis != TEXTURE_SYNTHESIS_DISABLED)
+	{
+		code += "uniform vec2 texture_synthesis_tiling_scale;\n";
+		code += "uniform float texture_synthesis_weight_exponent;\n";
+	}
 
 	code += "uniform vec3 uv1_scale;\n";
 	code += "uniform vec3 uv1_offset;\n";
@@ -1123,48 +1132,42 @@ void BaseMaterial3D::_update_shader() {
 		code += "};\n";
 
 		code += "\n";
-		code += "float rnd21(vec2 p_point) {\n";
-		code += "	return fract(sin(dot(p_point.xy ,vec2(12.9898,78.233))) * 43758.5453);\n";
-		code += "}\n";
-
-		code += "\n";
 		code += "vec2 rnd22(vec2 p_point) {\n";
 		code += "	return fract(sin(p_point * mat2(vec2(127.1, 311.7), vec2(269.5, 183.3)) ) * 43758.5453);\n";
 		code += "}\n";
 
 		code += "\n";
 		code += "float texsyn_w0(vec2 p_uv) {\n";
-		code += "	float sinu = sin(p_uv.x*PI); \n";
-		code += "	float sinv = sin(p_uv.y*PI); \n";
-		code += "	return pow(sinu*sinv*sinu*sinv, 0.5)+0.005; \n";
+		code += "	p_uv *= texture_synthesis_tiling_scale;\n";
+		code += "	vec2 sinuv = sin(p_uv*PI);\n";
+		code += "	return pow(sinuv.x*sinuv.x*sinuv.y*sinuv.y, texture_synthesis_weight_exponent)+0.005;\n";
 		code += "}\n";
 
 		code += "\n";
 		code += "float texsyn_w1(vec2 p_uv) {\n";
-		code += "	p_uv.x+=0.5; \n";
-		code += "	p_uv.y+=0.5; \n";
-		code += "	float sinu = sin(p_uv.x*PI); \n";
-		code += "	float sinv = sin(p_uv.y*PI); \n";
-		code += "	return pow(sinu*sinv*sinu*sinv, 0.5)+0.005; \n";
+		code += "	p_uv += vec2(0.5, 0.5);\n";
+		code += "	p_uv *= texture_synthesis_tiling_scale;\n";
+		code += "	vec2 sinuv = sin(p_uv*PI);\n";
+		code += "	return pow(sinuv.x*sinuv.x*sinuv.y*sinuv.y, texture_synthesis_weight_exponent)+0.005; \n";
 		code += "}\n";
 
 		code += "\n";
-		code += "vec2 texsyn_k0(vec2 p_uv){\n";
-		code += "	vec2 seed ; \n";
-		code += "	seed.x = floor(p_uv.x); \n";
-		code += "	seed.y = floor(p_uv.y); \n";
+		code += "vec2 texsyn_k0(vec2 p_uv) {\n";
+		code += "	p_uv *= texture_synthesis_tiling_scale;\n";
+		code += "	vec2 seed = floor(p_uv);\n";
 		code += "	return seed*2.0; \n";
 		code += "}\n";
 
 		code += "\n";
-		code += "vec2 texsyn_k1(vec2 p_uv){\n";
-		code += "	vec2 seed ; \n";
-		code += "	seed = vec2(floor(p_uv.x+0.5), floor(p_uv.y+0.5)); \n";
-		code += "	return seed*2.0 + vec2(1.0, 1.0); \n";
+		code += "vec2 texsyn_k1(vec2 p_uv) {\n";
+		code += "	p_uv += vec2(0.5, 0.5);\n";
+		code += "	p_uv *= texture_synthesis_tiling_scale;\n";
+		code += "	vec2 seed = floor(p_uv);\n";
+		code += "	return seed*2.0 + vec2(1.0, 1.0);\n";
 		code += "}\n";
 
 		code += "\n";
-		code += "vec4 tiling_blending_4D(sampler2D p_sampler, vec2 p_uv, TexSynData p_texsyn_data){\n";
+		code += "vec4 tiling_blending_4D(sampler2D p_sampler, vec2 p_uv, TexSynData p_texsyn_data) {\n";
 		code += "	vec4 mean = texture(p_sampler, p_uv, 99.);\n";
 		code += "	vec4 first = texture(p_sampler, p_texsyn_data.uvk0) - mean;\n";
 		code += "	vec4 second = texture(p_sampler, p_texsyn_data.uvk1) - mean;\n";
@@ -1174,7 +1177,7 @@ void BaseMaterial3D::_update_shader() {
 		code += "}\n";
 		
 		code += "\n";
-		code += "float tiling_blending_1D_dot(sampler2D p_sampler, vec2 p_uv, TexSynData p_texsyn_data, vec4 p_channel){\n";
+		code += "float tiling_blending_1D_dot(sampler2D p_sampler, vec2 p_uv, TexSynData p_texsyn_data, vec4 p_channel) {\n";
 		code += "	float mean = dot(texture(p_sampler, p_uv, 99.), p_channel);\n";
 		code += "	float first = dot(texture(p_sampler, p_texsyn_data.uvk0), p_channel ) - mean;\n";
 		code += "	float second = dot(texture(p_sampler, p_texsyn_data.uvk1), p_channel ) - mean;\n";
@@ -2810,6 +2813,24 @@ BaseMaterial3D::TextureSynthesisMode BaseMaterial3D::get_texture_synthesis() con
 	return texture_synthesis;
 }
 
+void BaseMaterial3D::set_texture_synthesis_tiling_scale(const Vector2 &p_scale) {
+	texture_synthesis_tiling_scale = p_scale;
+	RS::get_singleton()->material_set_param(_get_material(), shader_names->texture_synthesis_tiling_scale, texture_synthesis_tiling_scale);
+}
+
+Vector2 BaseMaterial3D::get_texture_synthesis_tiling_scale() const {
+	return texture_synthesis_tiling_scale;
+}
+
+void BaseMaterial3D::set_texture_synthesis_weight_exponent(float p_exponent) {
+	texture_synthesis_weight_exponent = p_exponent;
+	RS::get_singleton()->material_set_param(_get_material(), shader_names->texture_synthesis_weight_exponent, texture_synthesis_weight_exponent);
+}
+
+float BaseMaterial3D::get_texture_synthesis_weight_exponent() const {
+	return texture_synthesis_weight_exponent;
+}
+
 RID BaseMaterial3D::get_shader_rid() const {
 	MutexLock lock(material_mutex);
 	if (element.in_list()) { // _is_shader_dirty() would create anoder mutex lock
@@ -3032,6 +3053,12 @@ void BaseMaterial3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_texture_synthesis", "mode"), &BaseMaterial3D::set_texture_synthesis);
 	ClassDB::bind_method(D_METHOD("get_texture_synthesis"), &BaseMaterial3D::get_texture_synthesis);
+	
+	ClassDB::bind_method(D_METHOD("set_texture_synthesis_tiling_scale", "scale"), &BaseMaterial3D::set_texture_synthesis_tiling_scale);
+	ClassDB::bind_method(D_METHOD("get_texture_synthesis_tiling_scale"), &BaseMaterial3D::get_texture_synthesis_tiling_scale);
+	
+	ClassDB::bind_method(D_METHOD("set_texture_synthesis_weight_exponent", "exponent"), &BaseMaterial3D::set_texture_synthesis_weight_exponent);
+	ClassDB::bind_method(D_METHOD("get_texture_synthesis_weight_exponent"), &BaseMaterial3D::get_texture_synthesis_weight_exponent);
 
 	ADD_GROUP("Transparency", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "transparency", PROPERTY_HINT_ENUM, "Disabled,Alpha,Alpha Scissor,Alpha Hash,Depth Pre-Pass"), "set_transparency", "get_transparency");
@@ -3208,6 +3235,8 @@ void BaseMaterial3D::_bind_methods() {
 
 	ADD_GROUP("Texture Synthesis", "texture_synthesis_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "texture_synthesis_mode", PROPERTY_HINT_ENUM, "Disabled,Stationary"), "set_texture_synthesis", "get_texture_synthesis");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "texture_synthesis_tiling_scale"), "set_texture_synthesis_tiling_scale", "get_texture_synthesis_tiling_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "texture_synthesis_weight_exponent", PROPERTY_HINT_EXP_EASING), "set_texture_synthesis_weight_exponent", "get_texture_synthesis_weight_exponent");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_albedo"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ALBEDO);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_height"), "set_flag", "get_flag", FLAG_SYNTHESIZE_HEIGHT);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_metallic"), "set_flag", "get_flag", FLAG_SYNTHESIZE_METALLIC);
@@ -3425,6 +3454,10 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	set_heightmap_deep_parallax_min_layers(8);
 	set_heightmap_deep_parallax_max_layers(32);
 	set_heightmap_deep_parallax_flip_tangent(false); //also sets binormal
+	
+	set_texture_synthesis(TextureSynthesisMode::TEXTURE_SYNTHESIS_DISABLED);
+	set_texture_synthesis_tiling_scale(Vector2(1.0, 1.0));
+	set_texture_synthesis_weight_exponent(1.0);
 
 	flags[FLAG_ALBEDO_TEXTURE_MSDF] = false;
 	flags[FLAG_USE_TEXTURE_REPEAT] = true;
