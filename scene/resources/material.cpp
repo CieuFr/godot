@@ -1133,19 +1133,19 @@ void BaseMaterial3D::_update_shader() {
 		code += "}\n";
 
 		code += "\n";
-		code += "float W0cos(vec2 p_uv) {\n";
-		code += "	float cosu = sin(p_uv.x*PI); \n";
-		code += "	float cosv = sin(p_uv.y*PI); \n";
-		code += "	return pow(cosu*cosv*cosu*cosv, 0.5)+0.005; \n";
+		code += "float texsyn_w0(vec2 p_uv) {\n";
+		code += "	float sinu = sin(p_uv.x*PI); \n";
+		code += "	float sinv = sin(p_uv.y*PI); \n";
+		code += "	return pow(sinu*sinv*sinu*sinv, 0.5)+0.005; \n";
 		code += "}\n";
 
 		code += "\n";
-		code += "float W1cos(vec2 p_uv) {\n";
-		code += "	p_uv.x+=0.5 ; \n";
-		code += "	p_uv.y+=0.5 ; \n";
-		code += "	float cosu = sin(p_uv.x*PI); \n";
-		code += "	float cosv = sin(p_uv.y*PI); \n";
-		code += "	return pow(cosu*cosv*cosu*cosv, 0.5)+0.005; \n";
+		code += "float texsyn_w1(vec2 p_uv) {\n";
+		code += "	p_uv.x+=0.5; \n";
+		code += "	p_uv.y+=0.5; \n";
+		code += "	float sinu = sin(p_uv.x*PI); \n";
+		code += "	float sinv = sin(p_uv.y*PI); \n";
+		code += "	return pow(sinu*sinv*sinu*sinv, 0.5)+0.005; \n";
 		code += "}\n";
 
 		code += "\n";
@@ -1190,7 +1190,7 @@ void BaseMaterial3D::_update_shader() {
 			code += "	{\n";
 			code += "		vec2 k0 = texsyn_k0(base_uv);\n";
 			code += "		vec2 k1 = texsyn_k1(base_uv);\n";
-			code += "		vec2 w = vec2(W0cos(base_uv), W1cos(base_uv));\n";
+			code += "		vec2 w = vec2(texsyn_w0(base_uv), texsyn_w1(base_uv));\n";
 			code += "		vec2 uvk0 = base_uv + rnd22(k0);\n";
 			code += "		vec2 uvk1 = base_uv + rnd22(k1);\n";
 			code += "		float depth = 1.0;\n";
@@ -1202,7 +1202,7 @@ void BaseMaterial3D::_update_shader() {
 		}
 		code += "	vec2 k0 = texsyn_k0(base_uv);\n";
 		code += "	vec2 k1 = texsyn_k1(base_uv);\n";
-		code += "	vec2 w = vec2(W0cos(base_uv), W1cos(base_uv));\n";
+		code += "	vec2 w = vec2(texsyn_w0(base_uv), texsyn_w1(base_uv));\n";
 		code += "	vec2 uvk0 = base_uv + rnd22(k0);\n";
 		code += "	vec2 uvk1 = base_uv + rnd22(k1);\n";
 		code += "	TexSynData texsyn_data = TexSynData(w, uvk0, uvk1) ;\n";
