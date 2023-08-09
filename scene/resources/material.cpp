@@ -590,6 +590,7 @@ void BaseMaterial3D::init_shaders() {
 	
 	shader_names->texture_synthesis_tiling_scale = "texture_synthesis_tiling_scale";
 	shader_names->texture_synthesis_weight_exponent = "texture_synthesis_weight_exponent";
+	shader_names->texture_synthesis_seed = "texture_synthesis_seed";
 }
 
 HashMap<uint64_t, Ref<StandardMaterial3D>> BaseMaterial3D::materials_for_2d;
@@ -965,6 +966,7 @@ void BaseMaterial3D::_update_shader() {
 	{
 		code += "uniform vec2 texture_synthesis_tiling_scale;\n";
 		code += "uniform float texture_synthesis_weight_exponent;\n";
+		code += "uniform float texture_synthesis_seed;\n";
 	}
 
 	code += "uniform vec3 uv1_scale;\n";
@@ -1133,7 +1135,7 @@ void BaseMaterial3D::_update_shader() {
 
 		code += "\n";
 		code += "vec2 rnd22(vec2 p_point) {\n";
-		code += "	return fract(sin(p_point * mat2(vec2(127.1, 311.7), vec2(269.5, 183.3)) ) * 43758.5453);\n";
+		code += "	return fract(sin((p_point + vec2(texture_synthesis_seed)) * mat2(vec2(127.1, 311.7), vec2(269.5, 183.3)) ) * 43758.5453);\n";
 		code += "}\n";
 
 		code += "\n";
@@ -2831,6 +2833,15 @@ float BaseMaterial3D::get_texture_synthesis_weight_exponent() const {
 	return texture_synthesis_weight_exponent;
 }
 
+void BaseMaterial3D::set_texture_synthesis_seed(float p_seed) {
+	texture_synthesis_seed = p_seed;
+	RS::get_singleton()->material_set_param(_get_material(), shader_names->texture_synthesis_seed, texture_synthesis_seed);
+}
+
+float BaseMaterial3D::get_texture_synthesis_seed() const {
+	return texture_synthesis_seed;
+}
+
 RID BaseMaterial3D::get_shader_rid() const {
 	MutexLock lock(material_mutex);
 	if (element.in_list()) { // _is_shader_dirty() would create anoder mutex lock
@@ -3059,6 +3070,9 @@ void BaseMaterial3D::_bind_methods() {
 	
 	ClassDB::bind_method(D_METHOD("set_texture_synthesis_weight_exponent", "exponent"), &BaseMaterial3D::set_texture_synthesis_weight_exponent);
 	ClassDB::bind_method(D_METHOD("get_texture_synthesis_weight_exponent"), &BaseMaterial3D::get_texture_synthesis_weight_exponent);
+	
+	ClassDB::bind_method(D_METHOD("set_texture_synthesis_seed", "seed"), &BaseMaterial3D::set_texture_synthesis_seed);
+	ClassDB::bind_method(D_METHOD("get_texture_synthesis_seed"), &BaseMaterial3D::get_texture_synthesis_seed);
 
 	ADD_GROUP("Transparency", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "transparency", PROPERTY_HINT_ENUM, "Disabled,Alpha,Alpha Scissor,Alpha Hash,Depth Pre-Pass"), "set_transparency", "get_transparency");
@@ -3237,6 +3251,7 @@ void BaseMaterial3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "texture_synthesis_mode", PROPERTY_HINT_ENUM, "Disabled,Stationary"), "set_texture_synthesis", "get_texture_synthesis");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "texture_synthesis_tiling_scale"), "set_texture_synthesis_tiling_scale", "get_texture_synthesis_tiling_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "texture_synthesis_weight_exponent", PROPERTY_HINT_EXP_EASING), "set_texture_synthesis_weight_exponent", "get_texture_synthesis_weight_exponent");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "texture_synthesis_seed", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_texture_synthesis_seed", "get_texture_synthesis_seed");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_albedo"), "set_flag", "get_flag", FLAG_SYNTHESIZE_ALBEDO);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_height"), "set_flag", "get_flag", FLAG_SYNTHESIZE_HEIGHT);
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_synthesis_metallic"), "set_flag", "get_flag", FLAG_SYNTHESIZE_METALLIC);

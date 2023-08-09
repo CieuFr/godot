@@ -477,6 +477,7 @@ private:
 		
 		StringName texture_synthesis_tiling_scale;
 		StringName texture_synthesis_weight_exponent;
+		StringName texture_synthesis_seed;
 	};
 
 	static Mutex material_mutex;
@@ -570,8 +571,9 @@ private:
 	TextureChannel refraction_texture_channel;
 
 	TextureSynthesisMode texture_synthesis = TEXTURE_SYNTHESIS_DISABLED;
-	Vector2 texture_synthesis_tiling_scale;
-	float texture_synthesis_weight_exponent;
+	Vector2 texture_synthesis_tiling_scale = Vector2(1.0f, 1.0f);
+	float texture_synthesis_weight_exponent = 1.0f;
+	float texture_synthesis_seed = 0.0f;
 
 	AlphaAntiAliasing alpha_antialiasing_mode = ALPHA_ANTIALIASING_OFF;
 
@@ -799,9 +801,10 @@ public:
 	
 	void set_texture_synthesis_tiling_scale(const Vector2 &p_scale);
 	Vector2 get_texture_synthesis_tiling_scale() const;
-	
 	void set_texture_synthesis_weight_exponent(float p_exponent);
 	float get_texture_synthesis_weight_exponent() const;
+	void set_texture_synthesis_seed(float p_seed);
+	float get_texture_synthesis_seed() const;
 
 	static void init_shaders();
 	static void finish_shaders();
