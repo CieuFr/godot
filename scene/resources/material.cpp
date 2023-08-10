@@ -962,7 +962,7 @@ void BaseMaterial3D::_update_shader() {
 		code += "varying vec3 uv2_power_normal;\n";
 	}
 	
-	if(texture_synthesis != TEXTURE_SYNTHESIS_DISABLED)
+	if(texture_synthesis_mode != TEXTURE_SYNTHESIS_DISABLED)
 	{
 		code += "uniform vec2 texture_synthesis_tiling_scale;\n";
 		code += "uniform float texture_synthesis_weight_exponent;\n";
@@ -1126,7 +1126,7 @@ void BaseMaterial3D::_update_shader() {
 	code += "\n\n";
 
 	
-	if(texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY){
+	if(texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY){
 		code += "struct TexSynData {\n";
 		code += "	vec2 w;\n";
 		code += "	vec2 uvk0;\n";
@@ -1214,7 +1214,7 @@ void BaseMaterial3D::_update_shader() {
 		code += "	return texsyn_data;\n";
 		code += "}\n";
 
-		if ((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && (flags[FLAG_UV1_USE_TRIPLANAR] || flags[FLAG_UV2_USE_TRIPLANAR])) {
+		if ((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && (flags[FLAG_UV1_USE_TRIPLANAR] || flags[FLAG_UV2_USE_TRIPLANAR])) {
 			code += "\n";
 			code += "vec4 triplanar_texture_stationary(sampler2D p_sampler,vec3 p_weights,vec3 p_triplanar_pos,vec3 p_view_dir) {\n";
 			code += "	vec4 samp=vec4(0.0);\n";
@@ -1315,15 +1315,15 @@ void BaseMaterial3D::_update_shader() {
 		code += "	vec3 view_dir = vec3(0.);\n";
 	}
 
-	if (!flags[FLAG_UV1_USE_TRIPLANAR] && (texture_synthesis != TEXTURE_SYNTHESIS_DISABLED)) {
+	if (!flags[FLAG_UV1_USE_TRIPLANAR] && (texture_synthesis_mode != TEXTURE_SYNTHESIS_DISABLED)) {
 		code += "	TexSynData texsyn_data = compute_texsyn_data(base_uv,vec3(0.));\n";
-	} else if(((features[FEATURE_DETAIL] && detail_uv == DETAIL_UV_2) || (features[FEATURE_AMBIENT_OCCLUSION] && flags[FLAG_AO_ON_UV2]) || (features[FEATURE_EMISSION] && flags[FLAG_EMISSION_ON_UV2])) && (texture_synthesis != TEXTURE_SYNTHESIS_DISABLED)){
+	} else if(((features[FEATURE_DETAIL] && detail_uv == DETAIL_UV_2) || (features[FEATURE_AMBIENT_OCCLUSION] && flags[FLAG_AO_ON_UV2]) || (features[FEATURE_EMISSION] && flags[FLAG_EMISSION_ON_UV2])) && (texture_synthesis_mode != TEXTURE_SYNTHESIS_DISABLED)){
 		code += "	TexSynData texsyn_data_uv2 = compute_texsyn_data(base_uv2,vec3(0.));\n";
 	}
 
 
 
-	if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ALBEDO]){
+	if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ALBEDO]){
 		if (flags[FLAG_USE_POINT_SIZE]) {
 			code += "	vec4 albedo_tex = tiling_blending_4D(texture_albedo, POINT_COORD, texsyn_data);\n";
 		} else {
@@ -1379,13 +1379,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (!orm) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_METALLIC]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_METALLIC]){
 				code += "	float metallic_tex = dot(triplanar_texture_stationary(texture_metallic,uv1_power_normal,uv1_triplanar_pos,view_dir),metallic_texture_channel);\n";
 			} else {
 				code += "	float metallic_tex = dot(triplanar_texture(texture_metallic,uv1_power_normal,uv1_triplanar_pos),metallic_texture_channel);\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_METALLIC] ){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_METALLIC] ){
 				code += "	float metallic_tex = tiling_blending_1D_dot(texture_metallic,base_uv,texsyn_data,metallic_texture_channel);\n";
 			} else {
 				code += "	float metallic_tex = dot(texture(texture_metallic,base_uv),metallic_texture_channel);\n";
@@ -1414,13 +1414,13 @@ void BaseMaterial3D::_update_shader() {
 		}
 
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ROUGHNESS]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ROUGHNESS]){
 				code += "	float roughness_tex = dot(triplanar_texture_stationary(texture_roughness,uv1_power_normal,uv1_triplanar_pos,view_dir),roughness_texture_channel);\n";
 			} else {
 				code += "	float roughness_tex = dot(triplanar_texture(texture_roughness,uv1_power_normal,uv1_triplanar_pos),roughness_texture_channel);\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ROUGHNESS]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ROUGHNESS]){
 				code += "	float roughness_tex = tiling_blending_1D_dot(texture_roughness,base_uv,texsyn_data,roughness_texture_channel);\n";
 			} else {
 				code += "	float roughness_tex = dot(texture(texture_roughness,base_uv),roughness_texture_channel);\n";
@@ -1441,13 +1441,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_NORMAL_MAPPING]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_NORMAL_MAP]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_NORMAL_MAP]){
 				code += "	NORMAL_MAP = triplanar_texture_stationary(texture_normal,uv1_power_normal,uv1_triplanar_pos,view_dir).rgb;\n";
 			} else {
 				code += "	NORMAL_MAP = triplanar_texture(texture_normal,uv1_power_normal,uv1_triplanar_pos).rgb;\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_NORMAL_MAP]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_NORMAL_MAP]){
 				code += "	NORMAL_MAP = tiling_blending_4D(texture_normal,base_uv,texsyn_data).rgb;\n";
 			} else {
 				code += "	NORMAL_MAP = texture(texture_normal,base_uv).rgb;\n";
@@ -1459,13 +1459,13 @@ void BaseMaterial3D::_update_shader() {
 	if (features[FEATURE_EMISSION]) {
 		if (flags[FLAG_EMISSION_ON_UV2]) {
 			if (flags[FLAG_UV2_USE_TRIPLANAR]) {
-				if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
+				if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
 					code += "	vec3 emission_tex = triplanar_texture_stationary(texture_emission,uv2_power_normal,uv2_triplanar_pos,view_dir).rgb;\n";
 				} else {
 					code += "	vec3 emission_tex = triplanar_texture(texture_emission,uv2_power_normal,uv2_triplanar_pos).rgb;\n";
 				}
 			} else {
-				if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
+				if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
 					code += "	vec3 emission_tex = tiling_blending_4D(texture_emission,base_uv2,texsyn_data_uv2).rgb;\n";
 				} else {
 					code += "	vec3 emission_tex = texture(texture_emission,base_uv2).rgb;\n";
@@ -1473,13 +1473,13 @@ void BaseMaterial3D::_update_shader() {
 			}
 		} else {
 			if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-				if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
+				if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
 					code += "	vec3 emission_tex = triplanar_texture_stationary(texture_emission,uv1_power_normal,uv1_triplanar_pos,view_dir).rgb;\n";
 				} else {
 					code += "	vec3 emission_tex = triplanar_texture(texture_emission,uv1_power_normal,uv1_triplanar_pos).rgb;\n";
 				}
 			} else {
-				if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
+				if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_EMISSION]){
 					code += "	vec3 emission_tex = tiling_blending_4D(texture_emission,base_uv,texsyn_data).rgb;\n";
 				} else {
 					code += "	vec3 emission_tex = texture(texture_emission,base_uv).rgb;\n";
@@ -1563,13 +1563,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_RIM]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_RIM]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_RIM]){
 				code += "	vec2 rim_tex = triplanar_texture_stationary(texture_rim,uv1_power_normal,uv1_triplanar_pos,view_dir).xy;\n";
 			} else {
 				code += "	vec2 rim_tex = triplanar_texture(texture_rim,uv1_power_normal,uv1_triplanar_pos).xy;\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_RIM]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_RIM]){
 				code += "	vec2 rim_tex = tiling_blending_4D(texture_rim,base_uv,texsyn_data).xy;\n";
 			} else {
 				code += "	vec2 rim_tex = texture(texture_rim,base_uv).xy;\n";
@@ -1581,13 +1581,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_CLEARCOAT]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_CLEARCOAT]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_CLEARCOAT]){
 				code += "	vec2 clearcoat_tex = triplanar_texture_stationary(texture_clearcoat,uv1_power_normal,uv1_triplanar_pos,view_dir).xy;\n";
 			} else {
 				code += "	vec2 clearcoat_tex = triplanar_texture(texture_clearcoat,uv1_power_normal,uv1_triplanar_pos).xy;\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_CLEARCOAT]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_CLEARCOAT]){
 				code += "	vec2 clearcoat_tex = tiling_blending_4D(texture_clearcoat,base_uv,texsyn_data).xy;\n";
 			} else {
 				code += "	vec2 clearcoat_tex = texture(texture_clearcoat,base_uv).xy;\n";
@@ -1599,13 +1599,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_ANISOTROPY]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ANISOTROPY] ){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ANISOTROPY] ){
 				code += "	vec2 anisotropy_tex = triplanar_texture_stationary(texture_flowmap,uv1_power_normal,uv1_triplanar_pos,view_dir).xy;\n";
 			} else {
 				code += "	vec3 anisotropy_tex = triplanar_texture(texture_flowmap,uv1_power_normal,uv1_triplanar_pos).rga;\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ANISOTROPY]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_ANISOTROPY]){
 				code += "	vec3 anisotropy_tex = tiling_blending_4D(texture_flowmap,base_uv,texsyn_data).rga;\n";
 			} else {
 				code += "	vec3 anisotropy_tex = texture(texture_flowmap,base_uv).rga;\n";
@@ -1619,13 +1619,13 @@ void BaseMaterial3D::_update_shader() {
 		if (!orm) {
 			if (flags[FLAG_AO_ON_UV2]) {
 				if (flags[FLAG_UV2_USE_TRIPLANAR]) {
-					if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
+					if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
 						code += "	AO = dot(triplanar_texture_stationary(texture_ambient_occlusion,uv2_power_normal,uv2_triplanar_pos,view_dir),ao_texture_channel);\n";
 					} else {
 						code += "	AO = dot(triplanar_texture(texture_ambient_occlusion,uv2_power_normal,uv2_triplanar_pos),ao_texture_channel);\n";
 					}
 				} else {
-					if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
+					if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
 						code += "	AO = tiling_blending_1D_dot(texture_ambient_occlusion,base_uv2,texsyn_data_uv2,ao_texture_channel);\n";
 					} else {
 						code += "	AO = dot(texture(texture_ambient_occlusion,base_uv2),ao_texture_channel);\n";
@@ -1633,13 +1633,13 @@ void BaseMaterial3D::_update_shader() {
 				}
 			} else {
 				if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-					if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
+					if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
 						code += "	AO = dot(triplanar_texture_stationary(texture_ambient_occlusion,uv1_power_normal,uv1_triplanar_pos,view_dir),ao_texture_channel);\n";
 					} else {
 						code += "	AO = dot(triplanar_texture(texture_ambient_occlusion,uv1_power_normal,uv1_triplanar_pos),ao_texture_channel);\n";
 					}
 				} else {
-					if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
+					if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_AO]){
 						code += "	AO = tiling_blending_1D_dot(texture_ambient_occlusion,base_uv,texsyn_data,ao_texture_channel);\n";
 					} else {
 						code += "	AO = dot(texture(texture_ambient_occlusion,base_uv),ao_texture_channel);\n";
@@ -1655,13 +1655,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_SUBSURFACE_SCATTERING]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_SCATTERING]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_SCATTERING]){
 				code += "	float sss_tex = triplanar_texture_stationary(texture_subsurface_scattering,uv1_power_normal,uv1_triplanar_pos,view_dir).r;\n";
 			} else {
 				code += "	float sss_tex = triplanar_texture(texture_subsurface_scattering,uv1_power_normal,uv1_triplanar_pos).r;\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_SCATTERING] ){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_SCATTERING] ){
 				code += "	float sss_tex = tiling_blending_4D(texture_subsurface_scattering,base_uv,texsyn_data).r;\n";
 			} else {
 				code += "	float sss_tex = texture(texture_subsurface_scattering,base_uv).r;\n";
@@ -1672,13 +1672,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_SUBSURFACE_TRANSMITTANCE]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE]){
 				code += "	vec4 trans_color_tex = triplanar_texture_stationary(texture_subsurface_transmittance,uv1_power_normal,uv1_triplanar_pos,view_dir);\n";
 			} else {
 				code += "	vec4 trans_color_tex = triplanar_texture(texture_subsurface_transmittance,uv1_power_normal,uv1_triplanar_pos);\n";
 			}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_SUBSURFACE_TRANSMITTANCE]){
 				code += "	vec4 trans_color_tex = tiling_blending_4D(texture_subsurface_transmittance,base_uv,texsyn_data);\n";
 			} else {
 				code += "	vec4 trans_color_tex = texture(texture_subsurface_transmittance,base_uv);\n";
@@ -1692,13 +1692,13 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_BACKLIGHT]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-				if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_BACK_LIGHTING]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_BACK_LIGHTING]){
 					code += "	vec3 backlight_tex = triplanar_texture_stationary(texture_backlight,uv1_power_normal,uv1_triplanar_pos,view_dir).rgb;\n";
 				} else {
 					code += "	vec3 backlight_tex = triplanar_texture(texture_backlight,uv1_power_normal,uv1_triplanar_pos).rgb;\n";
 				}
 		} else {
-			if((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_BACK_LIGHTING]){
+			if((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_BACK_LIGHTING]){
 				code += "	vec3 backlight_tex = tiling_blending_4D(texture_backlight,base_uv,texsyn_data).rgb;\n";
 			} else {
 				code += "	vec3 backlight_tex = texture(texture_backlight,base_uv).rgb;\n";
@@ -1712,7 +1712,7 @@ void BaseMaterial3D::_update_shader() {
 
 		if (triplanar) {
 			String tp_uv = detail_uv == DETAIL_UV_1 ? "uv1" : "uv2";
-			if ((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
+			if ((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
 				code += "	vec4 detail_tex = triplanar_texture_stationary(texture_detail_albedo," + tp_uv + "_power_normal," + tp_uv + "_triplanar_pos, view_dir);\n";
 				code += "	vec4 detail_norm_tex = triplanar_texture_stationary(texture_detail_normal," + tp_uv + "_power_normal," + tp_uv + "_triplanar_pos, view_dir);\n";
 			} else {
@@ -1722,7 +1722,7 @@ void BaseMaterial3D::_update_shader() {
 		} else {
 			String det_uv = detail_uv == DETAIL_UV_1 ? "base_uv" : "base_uv2";
 			String texSynDataDetail = detail_uv == DETAIL_UV_1 ? "texsyn_data" : "texsyn_data_uv2";
-			if ((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
+			if ((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
 				code += "	vec4 detail_tex = tiling_blending_4D(texture_detail_albedo,"+ det_uv +","+ texSynDataDetail +");\n";
 				code += "	vec4 detail_norm_tex = tiling_blending_4D(texture_detail_normal,"+ det_uv +"," + texSynDataDetail +");\n";
 			} else {
@@ -1734,13 +1734,13 @@ void BaseMaterial3D::_update_shader() {
 		}
 
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			if ((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
+			if ((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
 				code += "	vec4 detail_mask_tex = triplanar_texture_stationary(texture_detail_mask,uv1_power_normal,uv1_triplanar_pos,view_dir);\n";
 			} else {
 				code += "	vec4 detail_mask_tex = triplanar_texture(texture_detail_mask,uv1_power_normal,uv1_triplanar_pos);\n";
 			}
 		} else {
-			if ((texture_synthesis == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
+			if ((texture_synthesis_mode == TEXTURE_SYNTHESIS_STATIONARY) && flags[FLAG_SYNTHESIZE_DETAIL]) {
 				code += "	vec4 detail_mask_tex = tiling_blending_4D(texture_detail_mask,base_uv,texsyn_data);\n";
 			} else {
 				code += "	vec4 detail_mask_tex = texture(texture_detail_mask,base_uv);\n";
@@ -2281,7 +2281,7 @@ void BaseMaterial3D::_validate_property(PropertyInfo &p_property) const {
 	}
 
 	if (p_property.name.begins_with("texture_synthesis_") && (p_property.name != "texture_synthesis_mode")
-	&& texture_synthesis == TEXTURE_SYNTHESIS_DISABLED) {
+			&& texture_synthesis_mode == TEXTURE_SYNTHESIS_DISABLED) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
@@ -2805,14 +2805,14 @@ BaseMaterial3D::EmissionOperator BaseMaterial3D::get_emission_operator() const {
 	return emission_op;
 }
 
-void BaseMaterial3D::set_texture_synthesis(TextureSynthesisMode p_mode) {
-	texture_synthesis = p_mode;
+void BaseMaterial3D::set_texture_synthesis_mode(TextureSynthesisMode p_mode) {
+	texture_synthesis_mode = p_mode;
 	_queue_shader_change();
 	notify_property_list_changed();
 }
 
-BaseMaterial3D::TextureSynthesisMode BaseMaterial3D::get_texture_synthesis() const {
-	return texture_synthesis;
+BaseMaterial3D::TextureSynthesisMode BaseMaterial3D::get_texture_synthesis_mode() const {
+	return texture_synthesis_mode;
 }
 
 void BaseMaterial3D::set_texture_synthesis_tiling_scale(const Vector2 &p_scale) {
@@ -3062,8 +3062,8 @@ void BaseMaterial3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_distance_fade_min_distance", "distance"), &BaseMaterial3D::set_distance_fade_min_distance);
 	ClassDB::bind_method(D_METHOD("get_distance_fade_min_distance"), &BaseMaterial3D::get_distance_fade_min_distance);
 
-	ClassDB::bind_method(D_METHOD("set_texture_synthesis", "mode"), &BaseMaterial3D::set_texture_synthesis);
-	ClassDB::bind_method(D_METHOD("get_texture_synthesis"), &BaseMaterial3D::get_texture_synthesis);
+	ClassDB::bind_method(D_METHOD("set_texture_synthesis", "mode"), &BaseMaterial3D::set_texture_synthesis_mode);
+	ClassDB::bind_method(D_METHOD("get_texture_synthesis"), &BaseMaterial3D::get_texture_synthesis_mode);
 	
 	ClassDB::bind_method(D_METHOD("set_texture_synthesis_tiling_scale", "scale"), &BaseMaterial3D::set_texture_synthesis_tiling_scale);
 	ClassDB::bind_method(D_METHOD("get_texture_synthesis_tiling_scale"), &BaseMaterial3D::get_texture_synthesis_tiling_scale);
@@ -3470,7 +3470,7 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	set_heightmap_deep_parallax_max_layers(32);
 	set_heightmap_deep_parallax_flip_tangent(false); //also sets binormal
 	
-	set_texture_synthesis(TextureSynthesisMode::TEXTURE_SYNTHESIS_DISABLED);
+	set_texture_synthesis_mode(TextureSynthesisMode::TEXTURE_SYNTHESIS_DISABLED);
 	set_texture_synthesis_tiling_scale(Vector2(1.0, 1.0));
 	set_texture_synthesis_weight_exponent(1.0);
 

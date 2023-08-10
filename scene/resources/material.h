@@ -343,7 +343,7 @@ private:
 		uint64_t roughness_channel : get_num_bits(TEXTURE_CHANNEL_MAX - 1);
 		uint64_t emission_op : get_num_bits(EMISSION_OP_MAX - 1);
 		uint64_t distance_fade : get_num_bits(DISTANCE_FADE_MAX - 1);
-		uint64_t texture_synthesis : get_num_bits(TEXTURE_SYNTHESIS_MAX - 1);
+		uint64_t texture_synthesis_mode : get_num_bits(TEXTURE_SYNTHESIS_MAX - 1);
 
 		// booleans
 		uint64_t deep_parallax : 1;
@@ -402,7 +402,7 @@ private:
 		mk.emission_op = emission_op;
 		mk.alpha_antialiasing_mode = alpha_antialiasing_mode;
 		mk.orm = orm;
-		mk.texture_synthesis = texture_synthesis;
+		mk.texture_synthesis_mode = texture_synthesis_mode;
 
 		for (int i = 0; i < FEATURE_MAX; i++) {
 			if (features[i]) {
@@ -570,7 +570,7 @@ private:
 	TextureChannel ao_texture_channel;
 	TextureChannel refraction_texture_channel;
 
-	TextureSynthesisMode texture_synthesis = TEXTURE_SYNTHESIS_DISABLED;
+	TextureSynthesisMode texture_synthesis_mode = TEXTURE_SYNTHESIS_DISABLED;
 	Vector2 texture_synthesis_tiling_scale = Vector2(1.0f, 1.0f);
 	float texture_synthesis_weight_exponent = 1.0f;
 	float texture_synthesis_seed = 0.0f;
@@ -796,8 +796,8 @@ public:
 	void set_refraction_texture_channel(TextureChannel p_channel);
 	TextureChannel get_refraction_texture_channel() const;
 
-	void set_texture_synthesis(TextureSynthesisMode p_mode);
-	TextureSynthesisMode get_texture_synthesis() const;
+	void set_texture_synthesis_mode(TextureSynthesisMode p_mode);
+	TextureSynthesisMode get_texture_synthesis_mode() const;
 	
 	void set_texture_synthesis_tiling_scale(const Vector2 &p_scale);
 	Vector2 get_texture_synthesis_tiling_scale() const;
