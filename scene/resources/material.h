@@ -352,8 +352,8 @@ private:
 		uint64_t orm : 1;
 
 		// flag bitfield
-		uint32_t feature_mask;
-		uint32_t flags;
+		uint64_t feature_mask;
+		uint64_t flags;
 
 		MaterialKey() {
 			memset(this, 0, sizeof(MaterialKey));
