@@ -1,5 +1,9 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
+
+#nullable enable
 
 namespace Godot
 {
@@ -208,7 +212,7 @@ namespace Godot
 
         private void Rotate(Quaternion quaternion)
         {
-            this *= new Basis(quaternion);
+            this = new Basis(quaternion) * this;
         }
 
         private void SetDiagonal(Vector3 diagonal)
@@ -238,7 +242,7 @@ namespace Godot
 
         /// <summary>
         /// Returns the basis's rotation in the form of Euler angles.
-        /// The Euler order depends on the [param order] parameter,
+        /// The Euler order depends on the <paramref name="order"/> parameter,
         /// by default it uses the YXZ convention: when decomposing,
         /// first Z, then X, and Y last. The returned vector contains
         /// the rotation angles in the format (X angle, Y angle, Z angle).
@@ -595,7 +599,7 @@ namespace Godot
 
         /// <summary>
         /// Returns <see langword="true"/> if this basis is finite, by calling
-        /// <see cref="Mathf.IsFinite"/> on each component.
+        /// <see cref="Mathf.IsFinite(real_t)"/> on each component.
         /// </summary>
         /// <returns>Whether this vector is finite or not.</returns>
         public readonly bool IsFinite()
@@ -623,21 +627,31 @@ namespace Godot
         /// </summary>
         /// <param name="target">The position to look at.</param>
         /// <param name="up">The relative up direction.</param>
+        /// <param name="useModelFront">
+        /// If true, then the model is oriented in reverse,
+        /// towards the model front axis (+Z, Vector3.ModelFront),
+        /// which is more useful for orienting 3D models.
+        /// </param>
         /// <returns>The resulting basis matrix.</returns>
-        public static Basis LookingAt(Vector3 target, Vector3 up)
+        public static Basis LookingAt(Vector3 target, Vector3? up = null, bool useModelFront = false)
         {
+            up ??= Vector3.Up;
 #if DEBUG
             if (target.IsZeroApprox())
             {
                 throw new ArgumentException("The vector can't be zero.", nameof(target));
             }
-            if (up.IsZeroApprox())
+            if (up.Value.IsZeroApprox())
             {
                 throw new ArgumentException("The vector can't be zero.", nameof(up));
             }
 #endif
-            Vector3 column2 = -target.Normalized();
-            Vector3 column0 = up.Cross(column2);
+            Vector3 column2 = target.Normalized();
+            if (!useModelFront)
+            {
+                column2 = -column2;
+            }
+            Vector3 column0 = up.Value.Cross(column2);
 #if DEBUG
             if (column0.IsZeroApprox())
             {
@@ -647,6 +661,13 @@ namespace Godot
             column0.Normalize();
             Vector3 column1 = column2.Cross(column0);
             return new Basis(column0, column1, column2);
+        }
+
+        /// <inheritdoc cref="LookingAt(Vector3, Nullable{Vector3}, bool)"/>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static Basis LookingAt(Vector3 target, Vector3 up)
+        {
+            return LookingAt(target, up, false);
         }
 
         /// <summary>
@@ -1019,10 +1040,11 @@ namespace Godot
         }
 
         /// <summary>
-        /// Returns a Vector3 transformed (multiplied) by the transposed basis matrix.
-        ///
-        /// Note: This results in a multiplication by the inverse of the
-        /// basis matrix only if it represents a rotation-reflection.
+        /// Returns a Vector3 transformed (multiplied) by the inverse basis matrix,
+        /// under the assumption that the transformation basis is orthonormal (i.e. rotation/reflection
+        /// is fine, scaling/skew is not).
+        /// <c>vector * basis</c> is equivalent to <c>basis.Transposed() * vector</c>. See <see cref="Transposed"/>.
+        /// For transforming by inverse of a non-orthonormal basis (e.g. with scaling) <c>basis.Inverse() * vector</c> can be used instead. See <see cref="Inverse"/>.
         /// </summary>
         /// <param name="vector">A Vector3 to inversely transform.</param>
         /// <param name="basis">The basis matrix transformation to apply.</param>
@@ -1065,13 +1087,13 @@ namespace Godot
 
         /// <summary>
         /// Returns <see langword="true"/> if the <see cref="Basis"/> is
-        /// exactly equal to the given object (<see paramref="obj"/>).
+        /// exactly equal to the given object (<paramref name="obj"/>).
         /// Note: Due to floating-point precision errors, consider using
         /// <see cref="IsEqualApprox"/> instead, which is more reliable.
         /// </summary>
         /// <param name="obj">The object to compare with.</param>
         /// <returns>Whether or not the basis matrix and the object are exactly equal.</returns>
-        public override readonly bool Equals(object obj)
+        public override readonly bool Equals([NotNullWhen(true)] object? obj)
         {
             return obj is Basis other && Equals(other);
         }
@@ -1105,23 +1127,20 @@ namespace Godot
         /// <returns>A hash code for this basis.</returns>
         public override readonly int GetHashCode()
         {
-            return Row0.GetHashCode() ^ Row1.GetHashCode() ^ Row2.GetHashCode();
+            return HashCode.Combine(Row0, Row1, Row2);
         }
 
         /// <summary>
         /// Converts this <see cref="Basis"/> to a string.
         /// </summary>
         /// <returns>A string representation of this basis.</returns>
-        public override readonly string ToString()
-        {
-            return $"[X: {X}, Y: {Y}, Z: {Z}]";
-        }
+        public override readonly string ToString() => ToString(null);
 
         /// <summary>
         /// Converts this <see cref="Basis"/> to a string with the given <paramref name="format"/>.
         /// </summary>
         /// <returns>A string representation of this basis.</returns>
-        public readonly string ToString(string format)
+        public readonly string ToString(string? format)
         {
             return $"[X: {X.ToString(format)}, Y: {Y.ToString(format)}, Z: {Z.ToString(format)}]";
         }

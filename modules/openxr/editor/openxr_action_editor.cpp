@@ -30,6 +30,8 @@
 
 #include "openxr_action_editor.h"
 
+#include "editor/editor_string_names.h"
+
 void OpenXRActionEditor::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_do_set_name", "name"), &OpenXRActionEditor::_do_set_name);
 	ClassDB::bind_method(D_METHOD("_do_set_localized_name", "name"), &OpenXRActionEditor::_do_set_localized_name);
@@ -39,7 +41,7 @@ void OpenXRActionEditor::_bind_methods() {
 }
 
 void OpenXRActionEditor::_theme_changed() {
-	rem_action->set_icon(get_theme_icon(SNAME("Remove"), SNAME("EditorIcons")));
+	rem_action->set_icon(get_theme_icon(SNAME("Remove"), EditorStringName(EditorIcons)));
 }
 
 void OpenXRActionEditor::_notification(int p_what) {
@@ -157,7 +159,7 @@ OpenXRActionEditor::OpenXRActionEditor(Ref<OpenXRAction> p_action) {
 
 	rem_action = memnew(Button);
 	rem_action->set_tooltip_text(TTR("Remove action"));
-	rem_action->connect("pressed", callable_mp(this, &OpenXRActionEditor::_on_remove_action));
+	rem_action->connect(SceneStringName(pressed), callable_mp(this, &OpenXRActionEditor::_on_remove_action));
 	rem_action->set_flat(true);
 	add_child(rem_action);
 }

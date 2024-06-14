@@ -158,6 +158,10 @@ void LightOccluder2D::_poly_changed() {
 #endif
 }
 
+void LightOccluder2D::_physics_interpolated_changed() {
+	RenderingServer::get_singleton()->canvas_light_occluder_set_interpolated(occluder, is_physics_interpolated());
+}
+
 void LightOccluder2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_CANVAS: {
@@ -199,6 +203,17 @@ void LightOccluder2D::_notification(int p_what) {
 		case NOTIFICATION_EXIT_CANVAS: {
 			RS::get_singleton()->canvas_light_occluder_attach_to_canvas(occluder, RID());
 		} break;
+
+		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
+			if (is_visible_in_tree() && is_physics_interpolated()) {
+				// Explicitly make sure the transform is up to date in RenderingServer before
+				// resetting. This is necessary because NOTIFICATION_TRANSFORM_CHANGED
+				// is normally deferred, and a client change to transform will not always be sent
+				// before the reset, so we need to guarantee this.
+				RS::get_singleton()->canvas_light_occluder_set_transform(occluder, get_global_transform());
+				RS::get_singleton()->canvas_light_occluder_reset_physics_interpolation(occluder);
+			}
+		} break;
 	}
 }
 
@@ -215,7 +230,7 @@ bool LightOccluder2D::_edit_is_selected_on_click(const Point2 &p_point, double p
 void LightOccluder2D::set_occluder_polygon(const Ref<OccluderPolygon2D> &p_polygon) {
 #ifdef DEBUG_ENABLED
 	if (occluder_polygon.is_valid()) {
-		occluder_polygon->disconnect("changed", callable_mp(this, &LightOccluder2D::_poly_changed));
+		occluder_polygon->disconnect_changed(callable_mp(this, &LightOccluder2D::_poly_changed));
 	}
 #endif
 	occluder_polygon = p_polygon;
@@ -228,7 +243,7 @@ void LightOccluder2D::set_occluder_polygon(const Ref<OccluderPolygon2D> &p_polyg
 
 #ifdef DEBUG_ENABLED
 	if (occluder_polygon.is_valid()) {
-		occluder_polygon->connect("changed", callable_mp(this, &LightOccluder2D::_poly_changed));
+		occluder_polygon->connect_changed(callable_mp(this, &LightOccluder2D::_poly_changed));
 	}
 	queue_redraw();
 #endif

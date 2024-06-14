@@ -34,7 +34,7 @@
 #include "scene/main/timer.h"
 
 #ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
+#include "editor/themes/editor_scale.h"
 #endif
 
 #ifdef TOOLS_ENABLED
@@ -146,8 +146,8 @@ void Path2D::_notification(int p_what) {
 
 					for (int i = 0; i < sample_count; i++) {
 						const Vector2 p = r[i].get_origin();
-						const Vector2 side = r[i].columns[0];
-						const Vector2 forward = r[i].columns[1];
+						const Vector2 side = r[i].columns[1];
+						const Vector2 forward = r[i].columns[0];
 
 						// Fish Bone.
 						w[0] = p + (side - forward) * 5;
@@ -182,13 +182,13 @@ void Path2D::_curve_changed() {
 
 void Path2D::set_curve(const Ref<Curve2D> &p_curve) {
 	if (curve.is_valid()) {
-		curve->disconnect("changed", callable_mp(this, &Path2D::_curve_changed));
+		curve->disconnect_changed(callable_mp(this, &Path2D::_curve_changed));
 	}
 
 	curve = p_curve;
 
 	if (curve.is_valid()) {
-		curve->connect("changed", callable_mp(this, &Path2D::_curve_changed));
+		curve->connect_changed(callable_mp(this, &Path2D::_curve_changed));
 	}
 
 	_curve_changed();
@@ -232,8 +232,8 @@ void PathFollow2D::_update_transform() {
 
 	if (rotates) {
 		Transform2D xform = c->sample_baked_with_rotation(progress, cubic);
-		xform.translate_local(v_offset, h_offset);
-		set_rotation(xform[1].angle());
+		xform.translate_local(h_offset, v_offset);
+		set_rotation(xform[0].angle());
 		set_position(xform[2]);
 	} else {
 		Vector2 pos = c->sample_baked(progress, cubic);

@@ -52,7 +52,7 @@ class VideoStreamPlayer : public Control {
 
 	RID stream_rid;
 
-	Ref<ImageTexture> texture;
+	Ref<Texture2D> texture;
 
 	AudioRBResampler resampler;
 	Vector<AudioFrame> mix_buffer;
